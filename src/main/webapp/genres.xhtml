@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<f:metadata>
+    <f:viewParam name="genre" value="#{movieBean.selectedGenre}"/>
+</f:metadata>
+
+<ui:composition template="/WEB-INF/template.xhtml">
+    <ui:define name="content">
+
+        <h2>Фильмы по жанрам</h2>
+
+        <h3>
+            Текущий жанр:
+            <h:outputText value="#{empty movieBean.selectedGenre ? 'Все жанры' : movieBean.selectedGenre}"/>
+        </h3>
+
+        <h:panelGroup rendered="#{not empty movieBean.moviesByGenre}">
+            <ui:repeat value="#{movieBean.moviesByGenre}" var="m">
+                <div class="movie-card">
+                    <div class="movie-title">
+                        #{m.title}
+                        <h:panelGroup rendered="#{m.releaseDate != null}">
+                            <span class="badge">
+                                <h:outputText value="#{m.releaseDate}">
+                                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                                </h:outputText>
+                            </span>
+                        </h:panelGroup>
+                    </div>
+                    <div>
+                        <b>Жанр:</b> #{empty m.genre ? '—' : m.genre}
+                    </div>
+                    <div>
+                        <b>Описание:</b>
+                        <h:outputText value="#{empty m.description ? '—' : m.description}"/>
+                    </div>
+                </div>
+            </ui:repeat>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{empty movieBean.moviesByGenre}">
+            Для выбранного жанра пока нет фильмов. Попробуй добавить их на вкладке «Скоро в кино».
+        </h:panelGroup>
+
+    </ui:define>
+</ui:composition>
+
+</html>

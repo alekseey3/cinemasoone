@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<ui:composition template="/WEB-INF/template.xhtml">
+    <ui:define name="content">
+
+        <h2>Ожидаемые фильмы</h2>
+        <p>Добавь фильм, который ты ждёшь – и он появится в общем списке.</p>
+
+        <!-- ФОРМА ДОБАВЛЕНИЯ НОВОГО ФИЛЬМА -->
+        <h:form>
+            <!-- вывод ошибок валидации -->
+            <h:messages style="color: #ff5555; margin-bottom: 10px;" />
+
+            <div class="form-row">
+                <label>Название фильма</label>
+                <h:inputText value="#{movieBean.newMovie.title}"
+                             required="true"
+                             requiredMessage="Название фильма обязательно"/>
+            </div>
+
+            <div class="form-row">
+                <label>Предполагаемая дата выхода</label>
+                <!-- HTML5 date-picker + конвертер в java.util.Date -->
+                <h:inputText value="#{movieBean.newMovie.releaseDate}">
+                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                    <f:passThroughAttribute name="type" value="date"/>
+                </h:inputText>
+            </div>
+
+            <div class="form-row">
+                <label>Жанр</label>
+                <!-- выпадающий список жанров -->
+                <h:selectOneMenu value="#{movieBean.newMovie.genre}">
+                    <f:selectItem itemLabel="-- выберите жанр --" itemValue="" noSelectionOption="true"/>
+                    <f:selectItem itemLabel="Фантастика" itemValue="Фантастика"/>
+                    <f:selectItem itemLabel="Боевик" itemValue="Боевик"/>
+                    <f:selectItem itemLabel="Драма" itemValue="Драма"/>
+                    <f:selectItem itemLabel="Комедия" itemValue="Комедия"/>
+                    <f:selectItem itemLabel="Ужасы" itemValue="Ужасы"/>
+                    <f:selectItem itemLabel="Анимация" itemValue="Анимация"/>
+                </h:selectOneMenu>
+            </div>
+
+            <div class="form-row">
+                <label>Почему ждёшь / краткое описание</label>
+                <h:inputTextarea value="#{movieBean.newMovie.description}" rows="3"/>
+            </div>
+
+            <h:commandButton value="Добавить" action="#{movieBean.addMovie}" styleClass="btn"/>
+        </h:form>
+
+        <hr/>
+
+        <!-- ФОРМА РЕДАКТИРОВАНИЯ ФИЛЬМА -->
+        <h:panelGroup rendered="#{movieBean.editing}">
+            <h3>Редактирование фильма</h3>
+            <h:form>
+                <h:messages style="color: #ff5555; margin-bottom: 10px;" />
+
+                <div class="form-row">
+                    <label>Название фильма</label>
+                    <h:inputText value="#{movieBean.editingMovie.title}" required="true"
+                                 requiredMessage="Название фильма обязательно"/>
+                </div>
+
+                <div class="form-row">
+                    <label>Предполагаемая дата выхода</label>
+                    <h:inputText value="#{movieBean.editingMovie.releaseDate}">
+                        <f:convertDateTime pattern="yyyy-MM-dd"/>
+                        <f:passThroughAttribute name="type" value="date"/>
+                    </h:inputText>
+                </div>
+
+                <div class="form-row">
+                    <label>Жанр</label>
+                    <h:selectOneMenu value="#{movieBean.editingMovie.genre}">
+                        <f:selectItem itemLabel="-- выберите жанр --" itemValue="" noSelectionOption="true"/>
+                        <f:selectItem itemLabel="Фантастика" itemValue="Фантастика"/>
+                        <f:selectItem itemLabel="Боевик" itemValue="Боевик"/>
+                        <f:selectItem itemLabel="Драма" itemValue="Драма"/>
+                        <f:selectItem itemLabel="Комедия" itemValue="Комедия"/>
+                        <f:selectItem itemLabel="Ужасы" itemValue="Ужасы"/>
+                        <f:selectItem itemLabel="Анимация" itemValue="Анимация"/>
+                    </h:selectOneMenu>
+                </div>
+
+                <div class="form-row">
+                    <label>Почему ждёшь / краткое описание</label>
+                    <h:inputTextarea value="#{movieBean.editingMovie.description}" rows="3"/>
+                </div>
+
+                <h:commandButton value="Сохранить изменения"
+                                 action="#{movieBean.saveEdit}"
+                                 styleClass="btn"/>
+                <h:commandButton value="Отмена"
+                                 action="#{movieBean.cancelEdit}"
+                                 immediate="true"
+                                 styleClass="btn"
+                                 style="margin-left: 8px;"/>
+            </h:form>
+            <hr/>
+        </h:panelGroup>
+
+        <!-- СПИСОК ОЖИДАЕМЫХ ФИЛЬМОВ -->
+        <h3>Список ожиданий</h3>
+
+        <h:panelGroup rendered="#{not empty movieBean.movies}">
+            <h:form>
+                <ui:repeat value="#{movieBean.movies}" var="m">
+                    <div class="movie-card">
+                        <div class="movie-title">
+                            #{m.title}
+                            <h:panelGroup rendered="#{m.releaseDate != null}">
+                                <span class="badge">
+                                    <h:outputText value="#{m.releaseDate}">
+                                        <f:convertDateTime pattern="yyyy-MM-dd"/>
+                                    </h:outputText>
+                                </span>
+                            </h:panelGroup>
+                        </div>
+                        <div>
+                            <b>Жанр:</b> #{empty m.genre ? '—' : m.genre}
+                        </div>
+                        <div>
+                            <b>Описание:</b>
+                            <h:outputText value="#{empty m.description ? '—' : m.description}"/>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <h:commandButton value="👍 #{m.likes}"
+                                             action="#{movieBean.likeMovie(m.id)}"
+                                             styleClass="btn"/>
+                            <h:commandButton value="Редактировать"
+                                             action="#{movieBean.startEdit(m)}"
+                                             styleClass="btn"
+                                             style="margin-left: 8px;"/>
+                            <h:commandButton value="Удалить"
+                                             action="#{movieBean.deleteMovie(m.id)}"
+                                             styleClass="btn btn-danger"
+                                             style="margin-left: 8px;"/>
+                        </div>
+                    </div>
+                </ui:repeat>
+            </h:form>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{empty movieBean.movies}">
+            Пока никто не добавил ни одного фильма. Будь первым!
+        </h:panelGroup>
+
+    </ui:define>
+</ui:composition>
+
+</html>
